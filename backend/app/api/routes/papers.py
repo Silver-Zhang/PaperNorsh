@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/papers", tags=["papers"])
 
-_VALID_ACTIONS = {"saved", "ignored", "highly_relevant"}
+_VALID_ACTIONS = {"saved", "ignored", "highly_relevant", "none"}
 
 
 @router.get("", response_model=list[PaperListItem])
@@ -92,13 +92,13 @@ def get_paper(paper_id: uuid.UUID, db: Session = Depends(get_db), _: User = Depe
     return paper
 
 
-@router.post("/{paper_id}/interact", response_model=InteractionRead, status_code=status.HTTP_200_OK)
+@router.post("/{paper_id}/interact", status_code=status.HTTP_200_OK)
 def interact_with_paper(
     paper_id: uuid.UUID,
     payload: InteractionCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> PaperInteraction:
+) -> Response | PaperInteraction:
     if payload.action not in _VALID_ACTIONS:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -116,6 +116,14 @@ def interact_with_paper(
         )
         .first()
     )
+
+    if payload.action == "none":
+        if interaction:
+            db.delete(interaction)
+            db.commit()
+            logger.info("User %s removed interaction with paper %s", current_user.id, paper_id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
     if interaction:
         interaction.action = payload.action
         interaction.updated_at = datetime.now(timezone.utc)
