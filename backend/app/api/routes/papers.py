@@ -92,7 +92,7 @@ def get_paper(paper_id: uuid.UUID, db: Session = Depends(get_db), _: User = Depe
     return paper
 
 
-@router.post("/{paper_id}/interact", status_code=status.HTTP_200_OK)
+@router.post("/{paper_id}/interact", response_model=None, status_code=status.HTTP_200_OK)
 def interact_with_paper(
     paper_id: uuid.UUID,
     payload: InteractionCreate,
