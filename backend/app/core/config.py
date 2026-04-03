@@ -35,9 +35,20 @@ class Settings(BaseSettings):
     ARXIV_MAX_RESULTS: int = 100
     OPENALEX_MAX_RESULTS: int = 100
     CROSSREF_MAX_RESULTS: int = 100
+    CROSSREF_MAILTO: str = "papernosh@example.com"
 
     # Runtime
     ENVIRONMENT: str = "development"
+
+    def model_post_init(self, __context) -> None:
+        if (
+            self.ENVIRONMENT == "production"
+            and self.SECRET_KEY == "changeme-secret-key-in-production"
+        ):
+            raise ValueError(
+                "SECRET_KEY must be changed from the default value in production. "
+                "Set the SECRET_KEY environment variable."
+            )
 
 
 settings = Settings()

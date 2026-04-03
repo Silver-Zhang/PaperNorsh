@@ -112,7 +112,7 @@ class DigestService:
                         logger.error("Source %s failed: %s", source.name, exc, exc_info=True)
 
             # Persist papers
-            papers_in_db: list[Paper] = []
+            papers_in_db: list[tuple[Paper, RawPaper]] = []
             for raw in all_raw:
                 p = _upsert_paper(db, raw)
                 if p:

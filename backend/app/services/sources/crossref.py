@@ -8,10 +8,11 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from app.services.sources.base import PaperSource, RawPaper
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 _CROSSREF_BASE = "https://api.crossref.org/works"
-_MAILTO = "papernosh@example.com"  # polite pool
 
 
 def _parse_date(date_parts: list | None) -> date | None:
@@ -49,7 +50,7 @@ class CrossrefSource(PaperSource):
             "rows": min(max_results, 1000),
             "sort": "published",
             "order": "desc",
-            "mailto": _MAILTO,
+            "mailto": settings.CROSSREF_MAILTO,
         }
 
         logger.info("CrossrefSource fetching with query=%r", query)
